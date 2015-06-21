@@ -1,0 +1,102 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[top=1in,bottom=1in,left=1in,right=1in]{geometry}
+\usepackage[numbers]{natbib}      % http://merkel.zoneo.net/Latex/natbib.php
+\usepackage{palatino}
+\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage{chngpage}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{subfigure}
+\usepackage{parskip}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{indentfirst}
+\definecolor{myblue}{rgb}{0,0.1,0.6}
+\definecolor{mygreen}{rgb}{0,0.3,0.1}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=mygreen,urlcolor=myblue]{hyperref}
+\newcommand{\bocomment}[1]{\textcolor{Bittersweet}{[#1 -BTO]}}
+\newenvironment{itemizesquish}{\begin{list}{\labelitemi}{\setlength{\parskip}{0.6cm}\setlength{\itemsep}{0em}\setlength{\labelwidth}{2em}\setlength{\leftmargin}{\labelwidth}\addtolength{\leftmargin}{\labelsep}}}{\end{list}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\ignore}[1]{}
+
+\newcommand{\solution}[1]{{\color{Blue}[\textbf{Solution:} #1]}}
+\theoremstyle{definition}
+\newtheorem{question}{Question}[section]
+% \newtheorem{question}{Question}
+\newcommand{\prior}{\alpha_m}
+\newcommand{\param}{\theta_m}
+
+\bibliographystyle{plainnat}
+\setlength{\parindent}{30pt}
+\linespread{1}
+
+\title{
+    Model Selection and Prior Selection
+}
+
+\author{
+	Khanh Nguyen
+}
+
+\date{June 04, 2015}
+
+\begin{document}
+\maketitle
+
+Consider a general machine learning problem, where we have data $D$, model $m$ and model parameter $\theta_m$.
+
+Preliminary concepts:
+\begin{itemize}
+\item Likelihood: $P(D | \theta_m, m)$
+\item Prior: $P(\theta_m | m)$\item Posterior: $P(\theta_m | D, m)\footnote{m is sometimes dropped from the condition.}$
+\end{itemize}
+
+\section{Model selection}
+To select between different families of models, we compute the posterior over models:
+
+$$ P(m|D) = \frac{P(D|m)P(m)}{\sum_m P(m, D)}$$
+
+Then we choose the MAP model $\hat{m} = arg\max_m p(m | D)$.
+
+Assume $P(m) \propto 1$ (uniform), then it becomes picking $$\hat{m} = arg\max P(D|m)$$.
+
+To compute $P(D | m)$, we marginalize over all model parameters. 
+
+$$P(D | m) = \int P(D | \theta_m) P(\theta_m | m) $$
+
+where $P(D | \theta_m)$ is the likelihood and $P(\theta_m | m)$ is the prior.
+
+$P(D | m)$ is called the \emph{marginal likelihood}. Notice that when we computing the marginal likelihood by integrating over all parameters, we eliminate overfitting. A model with a lot of parameters should not be favored since it fits a large set of data and has to split probabilities among them. 
+
+\section{Empirical Bayes}
+
+Let $\alpha_m$ be the prior of the parameters of the model. The full Bayesian generative model is as follows:
+
+$$P(\theta_m, \alpha_m | D) \propto P(D|\theta_m)P(\theta_m|\alpha_m)P(\theta_m)$$
+
+As an approximation, we use a point estimate of $\alpha_m$ and assume the distribution of $\alpha_m$ is uniform \footnote{As we go higher in the Bayesian hierarchy, the prior distribution matters less.}:
+
+$$ \hat{\alpha}_m = arg\max P(D|\prior) = arg\max \left[ \int P(D|\param)P(\param|\prior)d\param \right] $$
+
+This is called \emph{Empirical Bayes} since we are using a empirical value rather than putting a distribution on the prior. Notice that, in this case, the prior is not chosen independently of the data anymore. 
+
+Here is the hierarchy of methods, going from the "most empirical" one to the "most Bayesian" one:
+
+\begin{itemize}
+\item Maximum likelihood: $\hat{\theta}_m = arg\max_{\param}P(D | \param)$
+\item MAP estimation: $\hat{\theta}_m = arg\max_{\param}P(D|\param)P(\param|\prior)$
+\item ML-II (Empirical Bayes): $\hat{\alpha}_m = arg\max_{\prior} \int P(D | \param)P(\param | \prior) d\param$
+\item MAP-II: $\hat{\alpha}_m = arg\max_{\prior} \int P(D | \param) P(\param|\prior)P(\prior) d\param$
+\item Full Bayes: $P(\prior, \param | D) = P(D | \param)P(\param | \prior)P(\prior)$
+\end{itemize}
+
+\end{document}
+
+
+
+
+
+

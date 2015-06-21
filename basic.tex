@@ -1,0 +1,96 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[top=1in,bottom=1in,left=1in,right=1in]{geometry}
+\usepackage[numbers]{natbib}      % http://merkel.zoneo.net/Latex/natbib.php
+\usepackage{palatino}
+\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage{chngpage}
+\usepackage{stmaryrd}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{graphicx}
+\usepackage{lscape}
+\usepackage{subfigure}
+\usepackage{parskip}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{indentfirst}
+\definecolor{myblue}{rgb}{0,0.1,0.6}
+\definecolor{mygreen}{rgb}{0,0.3,0.1}
+\usepackage[colorlinks=true,linkcolor=black,citecolor=mygreen,urlcolor=myblue]{hyperref}
+\newcommand{\bocomment}[1]{\textcolor{Bittersweet}{[#1 -BTO]}}
+\newenvironment{itemizesquish}{\begin{list}{\labelitemi}{\setlength{\parskip}{0.6cm}\setlength{\itemsep}{0em}\setlength{\labelwidth}{2em}\setlength{\leftmargin}{\labelwidth}\addtolength{\leftmargin}{\labelsep}}}{\end{list}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\ignore}[1]{}
+
+\newcommand{\solution}[1]{{\color{Blue}[\textbf{Solution:} #1]}}
+\theoremstyle{definition}
+\newtheorem{question}{Question}[section]
+% \newtheorem{question}{Question}
+
+\bibliographystyle{plainnat}
+\setlength{\parindent}{30pt}
+\linespread{1}
+
+\title{
+    Linear Regression and Logistic Regression  
+}
+
+\author{
+	Khanh Nguyen
+}
+
+\date{June 02, 2015}
+
+\begin{document}
+\maketitle
+
+We consider data with response $y$ and input $x = \{x_1, x_2, ..., x_D\}$. We model the relationship between $x$ and $y$ by a probabilistic model of $p(y | x)$.
+
+Linear regression and logistic regression are examples of parametric models, i.e. models that have fixed amounts of parameters. We denote by $w$ the model parameter.
+
+\section{Linear Regression}
+
+  In linear regression, $y$ is a linear function of $x$:
+
+\begin{equation}
+y(x) = w^{T}x + \epsilon = \sum_{j=1}^D w_jx_j + \epsilon
+\end{equation}
+\label{eqn:lr}
+
+We assume that $\epsilon$ has a Gaussian distribution, i.e. $\epsilon \sim \mathcal{N}(w_0, \sigma^2)$. We can rewrite the linear regression model as a conditional probability density:
+
+\begin{equation}
+p(y | x, \theta) = \mathcal{N}(y | w^{T}x, \sigma^2)
+\end{equation}
+
+where $\theta = (w, \sigma^2)$ \footnote{Note that here $x$ and $w$ are slightly different from Eqn. \ref{eqn:lr}: $x = \{1, x1, ..., x_D\}$ and $w = \{w_0, w_1, .., w_D\}$}. $\mathcal{N}(y | w^{T}x, \sigma^2)$ is a normal distribution with mean depending on $x$. To represent non-linear relationship between $x$ and $y$, we can replace the mean and variance of the distribution by any non-linear function of $x$.
+
+\section{Logistic Regression}
+
+Despite of the name, logistic regression is used for classification. $y$ is now a binary variable, taking value of either 0 or 1. Hence, we need a different distribution than Gaussian to model this fact. Bernoulli distribution is a natural choice:
+
+\begin{equation}
+p(y | x, w) = Ber(y | \mu(x))
+\end{equation}
+
+where $\mu(x)$ is the parameter for the Bernoulli distribution and is a function of $x$.
+
+Since $\mu(x)$ must be between 0 and 1, we cannot use $w^{T}x$ but have to transform it somehow to fit into the [0,1] interval. We use the \emph{sigmoid function}, which is defined as:
+
+\begin{equation}
+sigm(t) = \frac{1}{1 + e^{-t}} = \frac{e^t}{1 + e^t}
+\end{equation} 
+
+Setting $\mu(x) = sigm(x)$, we obtain the logistic regression model:
+
+\begin{equation}
+p(y | x, w) = Ber(y | sigm(x))
+\end{equation}
+
+\end{document}
+
+
+
+
+
+
