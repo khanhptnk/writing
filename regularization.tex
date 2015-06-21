@@ -12,6 +12,7 @@
 \usepackage{lscape}
 \usepackage{subfigure}
 \usepackage{parskip}
+\usepackage{float}
 \usepackage[usenames,dvipsnames]{color}
 \usepackage{indentfirst}
 \definecolor{myblue}{rgb}{0,0.1,0.6}
@@ -21,7 +22,6 @@
 \newcommand\norm[1]{\left\lVert#1\right\rVert}
 \newcommand{\ignore}[1]{}
 
-\bibliographystyle{plainnat}
 \setlength{\parindent}{30pt}
 \linespread{1}
 
@@ -58,7 +58,7 @@ In this note, I will discuss all of those regularization methods mentioned so fa
 The L2-regularizer, also known as weight decay, penalizes the training objective by a norm-2 of the parameter vector (or the weight vector) $w$:
 $$
 J(w) = NLL(w) + \frac{1}{2} \alpha \norm{w}_2
-$$ where NLL(w) is the negative log-likelihood of the training data and $\norm{w}_2 = \sum_i w_i^2$, and $\alpha$ is the regularization strength \footnote{Notice that to penalize the objective, we have to "add" the regularizer since the goal is to minimize the objective.}.
+$$ where NLL(w) is the negative log-likelihood of the training data, $\norm{w}_2 = \sum_i w_i^2$ is the norm-2 of the parameter vector $w$, and $\alpha$ is the regularization strength \footnote{Notice that to penalize the objective, we have to "add" the regularizer since the goal is to minimize the objective.}.
 
 The gradient of the object with respect to $w$ is:
 \begin{equation}
@@ -86,22 +86,53 @@ We observe the followings from the above equation:
 
 \item Since $H$ is symmetric, $H = Q \Lambda Q^T$, for some orthonormal matrix $Q$ and some diagonal matrix $\Lambda$. Then:
 $$ w = Q(\Lambda + \alpha I)^{-1} \Lambda Q^T w^*$$
-We interpret the left hand side as rotating $w*$ to the space spanned by the eigenvectors of $H$, scaling each component $i$ by a factor of $\frac{\lambda_i}{\lambda _i + \alpha}$, then rotating it back to the original space.
-
-This process explains the name \emph{weight decay}. Each component of the parameters is suppressed. The strength of suppression varies depending on the magnitude of each component. Particularly, when $\lambda_i$ is negligible, the $\alpha$ term in the denominator will dominate and scale the  corresponding component to almost zero. Hence, the model will be more likely to go with a set of small-valued parameters. As a result, the variance of the parameters is limited to a smaller range so overfitting will be mitigated.
-
+We interpret the left hand side as rotating $w*$ to the space spanned by the eigenvectors of $H$, scaling each component $i$ by a factor of $\frac{\lambda_i}{\lambda _i + \alpha}$, then rotating it back to the original space. This explains the name \emph{weight decay}. Each component of the parameters is suppressed. The strength of suppression varies depending on the magnitude of each component. Particularly, when $\lambda_i$ is negligible, the $\alpha$ term in the denominator will dominate and scale the  corresponding component to almost zero. Hence, the model will be more likely to go with a set of small-valued parameters. As a result, the variance of the parameters is limited to a smaller range so overfitting will be mitigated.
 
 
 \end{itemize}
 
 
+From a Bayesian perspective, L2-regularization can be interpreted as placing a Gaussian prior with mean zero on theparamters. The reguarization strength is related to the variance of that Gaussian distribution. Since the Gaussian concentrates its mass on values near zeros, the Gaussian prior represents a preference for small-valued parameters.  
+\section{L1-regularization}
+
+L1-regularization also limits the variance of the model. It achieves that effect in a slightly different way from L2-regularization. Interestingly, the parameter vector of a model trained by a L1-regularized objective is often sparse, i.e. contains mostly zero entries. 
+
+An L1-regularized objective takes the form:
+$$
+J(w) = NLL(w) + \alpha \norm{w}_1
+$$ where NLL(w) is the negative log-likelihood of the training data and $\norm{w}_1 = \sum_i |w_i|$ is the norm-1 of the parameter vector $w$, and $\alpha$ is the regularization strength.
+
+The sub-gradient with respect to $w$ is:
+
+$$ \nabla_w J(w) = \nabla NLL(w) + \alpha \ \text{sign}(w) $$ where sign(w) returns a vector that contains the signs of elements of $w$. 
+
+As for L2-regularization, the penalty for each component of $w$ varies depending on the magnitude of that component. In the case of L1-regularization, however, each component is penalized by the same amount, plus or minus the regularization strength. This means smaller components will be pushed harder towards zero than greater components are.   
+
+There are several ways to understand the behavior of the L1-regularization. First of all, let's think of its as introducing a Laplace prior on the parameter vector. Recall that L2-regularization can be interpreted as a Gaussian prior. The main difference between the Guassian distribution and the Laplace distribution that is that the latter tends to be more heavy-tailed and allocate more probability mass at zero. In particular, we can visualize the difference function between these two type of regularizations in a 2D least square problem (Figure \ref{fig:l1vsl2} \footnote{Picture taken from Kevin Murphy's \emph{Machine Learning: a Probabilistic Approach}, page 430.}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.6\textwidth]{l1vsl2.png}
+\caption{(a) L1 (b) L2}
+\label{fig:l1vsl2}
+\end{figure}
+
+A regularized solution for this problem will lie at the intersection of the blue area and the red contour. As we can see, the blue area for L1-regularization is less inflated; hence, the red contour is more likely to touch it at points where the parameters are sparse. 
+
+\section{Early stopping}
+
+Recall that overfitting occurs when the generalization error starts to increase while the training error keeps descreasing. Therefore, to avoid overfitting, it is very natural to simply stop training as soon as we encounter this phenomenon. This is called \emph{early stopping}. More generally, we should use the set of parameters that gives the best performance on the validation set. 
+
+One can show that early stopping for linear model with a quadratic loss function is equivalance to L2-regularization \footnote{see the section on regularization of Bengio et al.'s \emph{Deep Learning} book}. The number of training steps is closely related to the regularization strength in that case.
+
+The most appealing aspect of early stopping is its simplicity. It does not the require re-engineering the loss function, which would lead to non-smooth or non-convex function and hinders optimization. Moreover, since the only hyper-parameter for early stopping is number of training steps, it does not require re-training the model to pick the optimal hyper-parameters. On the other hand, selecting the optimal hyper-parameter for L1 or L2 regularization is a very time-consuming process. There is a pitfall for early stopping though. A extra validation set will be needed, which is not always the case for many problems. In addition, when training the final version of a model, we would want to combine the validation set with the training set together. Then in that case it is unclear what the number of steps we would train the model on the new dataset should be.   
+
+\section{Dropout}
+
+\emph{Dropout} is a very effective regularization technique in deep learning. The motivation for dropout is another technique called \emph{bagging}, i.e. having many models for the final predictions. The hope is that different models will make different mistakes and they will correct each other. On average, an ensemble of models will perform as well as any of its member. For neural networks, since the cost of training a model is extremely high, we cannot train independently many models. However, we can still generate an emsemble of models by taking sub-structures of the network. This is done by randomly turning on or off activation of the neurons. Like early stopping, dropout does not modify that training objective so complexity of the training algorithm will remains unchanged. It is widely believed that dropout is more effective than standard regularizers such as weight decay, filter from constraints or activity regularization.   
 
 
- 
 
-
-
- 
 \end{document}
 
 
