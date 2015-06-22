@@ -20,7 +20,7 @@
 
 \newcommand{\ignore}[1]{}
 
-\bibliographystyle{plainnat}
+\iffalse \bibliographystyle{plainnat} \fi
 \setlength{\parindent}{30pt}
 \linespread{1}
 
@@ -112,6 +112,60 @@ and the gradients are:
 
 Read \href{http://arxiv.org/pdf/1402.3722v1.pdf}{word2vec Explained: Deriving Mikolov et al.'s
 Negative-Sampling Word-Embedding Method} (Goldberg and Levy, 2014) for the motivation of negative sampling.
+
+\section{Compare with GloVe}
+
+GloVe is a more recent word embedding model developed by CITE Pennington. In the paper of GloVe, the model was compared directly to \emph{word2vec}. There was a debate about how that experiment was set up. The final version of the paper still claimed that \emph{GloVe} outperformed \emph{word2vec} on the task of word analogy (created by CITE Mikolov) if we let it run long enough. I really the discussion on the motivation of the model since very few papers I have read have that kind of meticulous discussion. The authors illustrated how the training objective of \emph{skip-gram} uses information from the occurrence matrix of a corpus, which explains why the model, although only uses local context window, can produce word embeddings that capture global relationships. Hence, the \emph{skip-gram} model can also be viewed as a least square problem where only simple matrix decomposition is required to compute the solution. Thus \emph{GloVe} yields a better performance than \emph{skip-gram}.
+
+Concretely, let $X$ be the occurrence matrix of the corpus where the $(i, j)$ entry is number of times word $i$ and word $j$ co-occur. Denote by $P_{ij} = \frac{X_{ik}}{X_i}$ the probability that word $i$ and word $j$ co-occur. The relationship of word $i$ and word $j$ is determined based on the ratio of the probabilities of their co-occurrences with a context word $k$:
+
+\begin{equation}
+  F \left( (w_i - w_j)^T w^{'}_k \right) = \frac{P_{ik}}{P_{jk}}
+  \label{eqn:glove_eqn1}
+\end{equation}
+
+Since in the occurrence matrix, the roles of the rows and columns are interchangeable, we enforce symmetric to the above equation:
+
+\begin{equation}
+  F \left( (w_i - w_j)^T w^{'}_k \right) = \frac{F(w_i^T w^{'}_k)}{F(w_j^T w^{'}_k)}  
+  \label{eqn:glove_eqn2}
+\end{equation}
+
+From Eqn. \ref{eqn:glove_eqn1} and Eqn. \ref{eqn:glove_eqn2}, we have:
+
+\begin{equation}
+  F(w_i^T w^{'}_k) = P_{ik}
+\end{equation}
+or
+\begin{equation}
+  w_i^T w^{'}_k = \log (P_{ik}) = \log (X_{ik}) - \log (X_i)
+  \label{eqn:glove_eqn3}
+\end{equation}
+
+From Eqn. \ref{eqn:glove_eqn3}, we set the following weighed least square objective:
+
+\begin{equation}
+  J = \sum_{i,j} f(X_{ij}) (w_i^T w^{'}_j + b_i + b^{'}_j - \log X_{ij})
+\end{equation} 
+where $f(.)$ is a weight function and $b, b^{'}$ are bias terms. 
+
+Let's recall the training objective of \emph{skip-gram}:
+\begin{equation}
+  J = -\sum_{i} \sum_{j \in context(i)} \log Q_{ij}
+\end{equation} where $Q_{ij} = \frac{\exp (w_i^T w^{'}_j)}{\sum_k exp(w_i^T w^{'}_k)}$, which can be rewritten as:
+
+\begin{equation}
+  J = -\sum_{i, j} X_{i,j} \log Q_{i,j} = \sum_i X_i H(P_i, Q_i)
+  \label{eqn:glove_eqn4}
+\end{equation} where $H$ is the cross entropy between two distributions.  
+
+The \emph{GloVe} model is more advanced than Eqn. \ref{eqn:glove_eqn4} in two ways:
+
+(a) The weight function is not $X_i$ but an arbitrary function $f(X_{ij})$.
+
+(b) The cross entropy has several drawbacks. First, it assigns more probability mass to unlikely event. Second, calculating the normalizing constant involves summing over the entire vocabulary, which is costly. To address these problems, the \emph{GloVe} model chooses a quadratic loss instead.
+
+TODO: reread the Pennington's paper.
 
 \end{document}
 
