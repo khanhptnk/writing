@@ -19,6 +19,7 @@
 \usepackage[colorlinks=true,linkcolor=black,citecolor=mygreen,urlcolor=myblue]{hyperref}
 
 \newcommand{\ignore}[1]{}
+\newcommand{\up}[1]{^{(#1)}}
 
 \iffalse \bibliographystyle{plainnat} \fi
 \setlength{\parindent}{30pt}
@@ -41,7 +42,9 @@ Convolutional neural networks (CNN) is one of the major successes that initiate 
 
 \section{Motivation}
 
-Images are extremely high-dimension objects if we consider each pixel to be a feature. Using a fully-connected neural networks for an image would significantly increase the amount of computation. More seriously, such a model would have a gigantic set of paramters and thus is very susceptible to overfitting. To address this problem, CNNs are designed as sparsely connected neural networks. Each network layer is partitioned into a set of feature dectectors, often called \emph{filters}. The input image can be considered as a filter itself. For RBG images, we have three filters per image, corresponding to values for red, green, and blue. The numbers of filters of the hidden layers are determined by the model. Those feature dectectors will act on every possible position of the images and produce \emph{feature maps}, a mapping from positions to feature values. To compute the feature values, CNNs employs a special operation called \emph{convolution}. For each position, a filter is convolved with the corresponding region of the image. The convolution operation is the main difference between CNNs and regular neural networks that operate on matrix multiplication. However, using a small set of filters is not enough to reduce the complexity of the model. A special technique, called \emph{pooling}, is required to downsample the feature maps to map the network even sparser. Pooling is simply a mean of aggregating features in a local neighborhood. 
+Images are extremely high-dimension objects if we consider each pixel to be a feature. Using a fully-connected neural networks for an image would significantly increase the amount of computation. More seriously, such a model would have a gigantic set of paramters and thus is very susceptible to overfitting. To address this problem, CNNs are designed as sparsely connected neural networks. Each network layer is partitioned into a set of feature dectectors, often called \emph{filters}. The input image can be considered as a filter itself. Practically, for RBG images, we have three filters per image, corresponding to values for red, green, and blue. The numbers of filters of the hidden layers are determined by the model. A feature dectector computes features on every possible position of the images and produce a \emph{feature maps}. To compute the feature values, CNNs employs a special operation called \emph{convolution}. For each position, the filter is convolved with the corresponding region of the image. Convolution operation is the main difference between CNNs and regular neural networks that operate on matrix multiplication. 
+
+Using a small set of filters is not enough to reduce the complexity of the model. A special technique, called \emph{pooling}, is required to downsample the feature maps to make the network even sparser. Pooling is simply a mean of aggregating features in a local neighborhood. 
 
 Both derivation of the convolution and pooling operations can be derived easily. Therefore, CNNs can be train efficiently with backpropgation. 
 
@@ -59,9 +62,36 @@ Note that convolution is commutative, i.e. $f * g = g * f$. For 2D functions, co
   f * g = \int_{-\infty}^{\infty} f(x, y) g(m - x, n - y)
 \end{equation} where $m, n$ are dimensions of the convolution window. 
 
-In the context of CNNs, we can imagine $f$ as the filter, $g$ as the image and $(m, n)$ as a position on the image's 2D grid. The filter acts as a sliding window that goes across the image (in both dimensions) and convolves with the correponding subimage. Let $k\times k$ be the size of the filter, $w \times h$ be the size the of the image. The convotion of the filter with the (larger) image produces a feature map of size $(w - k + 1)\times(h - k + 1)$.
+In the context of CNNs, we can imagine $f$ as the filter, $g$ as the image and $(m, n)$ as a position on the image's 2D grid. The filter serves as a sliding window that goes across the image (in both dimensions) and convolves with corresponding subimages. Let $k\times k$ be the size of the filter, $w \times h$ be the size the of the image. The convolution of the filter with the (larger) image produces a feature map of size $(w - k + 1)\times(h - k + 1)$.
 
 \section{Pooling}
+
+As discussed above, pooling is a mean of combining statistics in a local region of a feature map. There are two common pooling mechanisms: take the average over a region and take the maximum value. We will analyze mean pooling to illustrate how this operation can be representation as a series of one convolution and two matrix multiplication operations. First, we create the mean feature map by convolving the original feature map with a filter whose elements are 1/K (K is the number of entries in the convolved region). Then we use matrix multiplications to take a subset of rows and columns from the mean feature map \footnote{Hint: you will need one left and one right matrix multiplication.}.  
+
+TODO: Why pooling?
+
+\section{Backpropagration review}
+
+Consider a generic feed-forward neural network consisting of L layers. Let $h\up{0}$ be the input vector for the network. The forward pass is conducted as follows:
+
+For $l = 1 \dots L$:
+\begin{itemize}
+\item $a\up{l} = W\up{l}h\up{l - 1} + b\up{l}$ 
+\item $h\up{l} = f(a\up{l})$
+\end{itemize} where $W\up{l}$, $b\up{l}$ are the parameters of the model and $f(.)$ is the activation function.
+
+The cost function $J$ is calculated from the final layer output $h\up{L}$. 
+
+The backpropagation algorithm works as follows:
+
+Set $\delta\up{L} = \nabla_{h\up{L}} J \bullet f'(a\up{L}) $
+
+For $l = L \dots 1$:
+\begin{itemize}
+  \item $\nabla_{W\up{l}} = \delta\up{l} h^{(l - 1)\top} $
+  \item $\nabla_{b\up{l}} = \delta\up{l}$
+  \item $\delta\up{l - 1} = W^{(l)\top} \delta\up{l} \bullet f'(a\up{l})$
+\end{itemize} where $\bullet$ is the element-wise multiplication operation.
 
 \end{document}
 
