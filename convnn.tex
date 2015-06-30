@@ -84,13 +84,13 @@ The cost function $J$ is calculated from the final layer output $h\up{L}$.
 
 The backpropagation algorithm works as follows:
 
-Set $\delta\up{L} = \nabla_{h\up{L}} J \bullet f'(a\up{L}) $
+Set $\delta\up{L} = \nabla_{a\up{L}} J = \nabla_{h\up{L}} J \bullet f'(a\up{L}) $
 
 For $l = L \dots 1$:
 \begin{itemize}
-  \item $\nabla_{W\up{l}} = \delta\up{l} h^{(l - 1)\top} $
-  \item $\nabla_{b\up{l}} = \delta\up{l}$
-  \item $\delta\up{l - 1} = W^{(l)\top} \delta\up{l} \bullet f'(a\up{l})$
+  \item $\nabla_{W\up{l}} J = \delta\up{l} h^{(l - 1)\top} $
+  \item $\nabla_{b\up{l}} J = \delta\up{l}$
+  \item $\delta\up{l - 1} = \nabla_{a\up{l - 1}} J =  W^{(l)\top} \delta\up{l} \bullet f'(a\up{l - 1})$
 \end{itemize} where $\bullet$ is the element-wise multiplication operation.
 
 \end{document}
